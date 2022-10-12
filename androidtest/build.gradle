@@ -1,0 +1,4 @@
+dependencies {
+    implementation 'org.mp4parser:isoparser:1.0.4.2'
+    implementation 'com.google.android:android:1.6_r2'
+}
