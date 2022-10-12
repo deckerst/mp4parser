@@ -15,3 +15,7 @@ isoparser/ac3-sample.mp4
 .project
 .settings
 
+/.gradle
+/gradlew
+/gradlew.bat
+/local.properties

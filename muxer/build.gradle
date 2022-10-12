@@ -1,0 +1,6 @@
+dependencies {
+    implementation project(path: ':isoparser')
+
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'org.slf4j:slf4j-simple:1.8.0-beta4'
+}

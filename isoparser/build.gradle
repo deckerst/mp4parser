@@ -1,0 +1,9 @@
+dependencies {
+    implementation project(path: ':isoparser')
+    implementation 'org.aspectj:aspectjrt:1.9.7'
+
+    testImplementation 'commons-codec:commons-codec:1.10'
+    testImplementation 'commons-io:commons-io:2.5'
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'org.slf4j:slf4j-simple:1.8.0-beta4'
+}
