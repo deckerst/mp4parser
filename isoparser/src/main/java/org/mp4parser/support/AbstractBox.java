@@ -1,20 +1,22 @@
-/*  
+/*
  * Copyright 2012 Sebastian Annies, Hamburg
  *
- * Licensed under the Apache License, Version 2.0 (the License); 
- * you may not use this file except in compliance with the License. 
- * You may obtain a copy of the License at 
- * 
- *     http://www.apache.org/licenses/LICENSE-2.0 
- * 
- * Unless required by applicable law or agreed to in writing, software 
- * distributed under the License is distributed on an AS IS BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
- * limitations under the License. 
+ * Licensed under the Apache License, Version 2.0 (the License);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an AS IS BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.mp4parser.support;
+
+import static org.mp4parser.tools.CastUtils.l2i;
 
 import org.mp4parser.BoxParser;
 import org.mp4parser.IsoFile;
@@ -22,7 +24,6 @@ import org.mp4parser.ParsableBox;
 import org.mp4parser.boxes.UserBox;
 import org.mp4parser.tools.Hex;
 import org.mp4parser.tools.IsoTypeWriter;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,8 +32,6 @@ import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
-
-import static org.mp4parser.tools.CastUtils.l2i;
 
 /**
  * A basic on-demand parsing box. Requires the implementation of three methods to become a fully working box:
@@ -103,7 +102,7 @@ public abstract class AbstractBox implements ParsableBox {
             }
         }
 
-        ((Buffer)content).position(0);
+        ((Buffer) content).position(0);
         isParsed = false;
     }
 
@@ -113,17 +112,17 @@ public abstract class AbstractBox implements ParsableBox {
             getHeader(bb);
             getContent(bb);
             if (deadBytes != null) {
-                ((Buffer)deadBytes).rewind();
+                ((Buffer) deadBytes).rewind();
                 while (deadBytes.remaining() > 0) {
                     bb.put(deadBytes);
                 }
             }
-            os.write((ByteBuffer) ((Buffer)bb).rewind());
+            os.write((ByteBuffer) ((Buffer) bb).rewind());
         } else {
             ByteBuffer header = ByteBuffer.allocate((isSmallBox() ? 8 : 16) + (UserBox.TYPE.equals(getType()) ? 16 : 0));
             getHeader(header);
-            os.write((ByteBuffer) ((Buffer)header).rewind());
-            os.write((ByteBuffer) ((Buffer)content).position(0));
+            os.write((ByteBuffer) ((Buffer) header).rewind());
+            os.write((ByteBuffer) ((Buffer) content).position(0));
         }
     }
 
@@ -137,13 +136,15 @@ public abstract class AbstractBox implements ParsableBox {
         if (content != null) {
             ByteBuffer content = this.content;
             isParsed = true;
-            ((Buffer)content).rewind();
+            ((Buffer) content).rewind();
             _parseDetails(content);
             if (content.remaining() > 0) {
                 deadBytes = content.slice();
             }
             this.content = null;
-            assert verify(content);
+            if (!verify(content)) {
+                throw new RuntimeException("failed to verify box=" + type);
+            }
         }
     }
 
@@ -192,13 +193,13 @@ public abstract class AbstractBox implements ParsableBox {
         ByteBuffer bb = ByteBuffer.allocate(l2i(getContentSize() + (deadBytes != null ? deadBytes.limit() : 0)));
         getContent(bb);
         if (deadBytes != null) {
-            ((Buffer)deadBytes).rewind();
+            ((Buffer) deadBytes).rewind();
             while (deadBytes.remaining() > 0) {
                 bb.put(deadBytes);
             }
         }
-        ((Buffer)content).rewind();
-        ((Buffer)bb).rewind();
+        ((Buffer) content).rewind();
+        ((Buffer) bb).rewind();
 
 
         if (content.remaining() != bb.remaining()) {
