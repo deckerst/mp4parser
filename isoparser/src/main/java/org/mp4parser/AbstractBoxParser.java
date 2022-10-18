@@ -24,6 +24,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.util.Arrays;
 import java.util.List;
@@ -34,7 +35,7 @@ import java.util.List;
 public abstract class AbstractBoxParser implements BoxParser {
 
     private List<String> skippedTypes;
-    
+
     private static Logger LOG = LoggerFactory.getLogger(AbstractBoxParser.class.getName());
     ThreadLocal<ByteBuffer> header = new ThreadLocal<ByteBuffer>() {
         @Override
@@ -54,7 +55,7 @@ public abstract class AbstractBoxParser implements BoxParser {
      * @throws java.io.IOException if reading from <code>in</code> fails
      */
     public ParsableBox parseBox(ReadableByteChannel byteChannel, String parentType) throws IOException {
-        ((Buffer)header.get()).rewind().limit(8);
+        ((Buffer) header.get()).rewind().limit(8);
 
         int bytesRead = 0;
         int b;
@@ -65,7 +66,7 @@ public abstract class AbstractBoxParser implements BoxParser {
                 bytesRead += b;
             }
         }
-        ((Buffer)header.get()).rewind();
+        ((Buffer) header.get()).rewind();
 
         long size = IsoTypeReader.readUInt32(header.get());
         // do plausibility check
@@ -76,11 +77,12 @@ public abstract class AbstractBoxParser implements BoxParser {
 
 
         String type = IsoTypeReader.read4cc(header.get());
-        //System.err.println(type);
         byte[] usertype = null;
         long contentSize;
 
+        boolean size64bit = false;
         if (size == 1) {
+            size64bit = true;
             header.get().limit(16);
             byteChannel.read(header.get());
             header.get().position(8);
@@ -101,17 +103,24 @@ public abstract class AbstractBoxParser implements BoxParser {
             contentSize -= 16;
         }
         ParsableBox parsableBox = null;
-        if( skippedTypes != null && skippedTypes.contains(type) ) {
+        if (skippedTypes != null && skippedTypes.contains(type)) {
             LOG.trace("Skipping box {} {} {}", type, usertype, parentType);
+            if (size64bit) {
+                // fix SkipBox content size for skipped box with 64-bit size variant
+                contentSize += 8;
+                if (byteChannel instanceof FileChannel) {
+                    FileChannel seekable = (FileChannel) byteChannel;
+                    seekable.position(seekable.position() - 8);
+                } else {
+                    throw new RuntimeException("Cannot skip box " + type + " if data source is not seekable");
+                }
+            }
             parsableBox = new SkipBox(type, usertype, parentType);
-        }
-        else {
+        } else {
             LOG.trace("Creating box {} {} {}", type, usertype, parentType);
             parsableBox = createBox(type, usertype, parentType);
         }
-        //LOG.finest("Parsing " + box.getType());
-        // System.out.println("parsing " + Mp4Arrays.toString(box.getType()) + " " + box.getClass().getName() + " size=" + size);
-        ((Buffer)header.get()).rewind();
+        ((Buffer) header.get()).rewind();
 
         parsableBox.parse(byteChannel, header.get(), contentSize, this);
         return parsableBox;
