@@ -26,23 +26,15 @@ import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * This BoxParser handles the basic stuff like reading size and extracting box type.
  */
 public abstract class AbstractBoxParser implements BoxParser {
+    private BoxSkipper skipper;
 
-    private List<String> skippedTypes;
-
-    private static Logger LOG = LoggerFactory.getLogger(AbstractBoxParser.class.getName());
-    ThreadLocal<ByteBuffer> header = new ThreadLocal<ByteBuffer>() {
-        @Override
-        protected ByteBuffer initialValue() {
-            return ByteBuffer.allocate(32);
-        }
-    };
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractBoxParser.class.getName());
+    ThreadLocal<ByteBuffer> header = ThreadLocal.withInitial(() -> ByteBuffer.allocate(32));
 
     public abstract ParsableBox createBox(String type, byte[] userType, String parent);
 
@@ -75,7 +67,6 @@ public abstract class AbstractBoxParser implements BoxParser {
             return null;
         }
 
-
         String type = IsoTypeReader.read4cc(header.get());
         byte[] usertype = null;
         long contentSize;
@@ -102,8 +93,8 @@ public abstract class AbstractBoxParser implements BoxParser {
             }
             contentSize -= 16;
         }
-        ParsableBox parsableBox = null;
-        if (skippedTypes != null && skippedTypes.contains(type)) {
+        ParsableBox parsableBox;
+        if (skipper != null && skipper.skip(type, contentSize)) {
             LOG.trace("Skipping box {} {} {}", type, usertype, parentType);
             if (size64bit) {
                 // fix SkipBox content size for skipped box with 64-bit size variant
@@ -126,8 +117,12 @@ public abstract class AbstractBoxParser implements BoxParser {
         return parsableBox;
     }
 
-    public AbstractBoxParser skippingBoxes(String... types) {
-        skippedTypes = Arrays.asList(types);
+    public AbstractBoxParser setBoxSkipper(BoxSkipper skipper) {
+        this.skipper = skipper;
         return this;
+    }
+
+    public interface BoxSkipper {
+        boolean skip(String type, long contentSize);
     }
 }
