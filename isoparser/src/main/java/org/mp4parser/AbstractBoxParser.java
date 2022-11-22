@@ -34,7 +34,15 @@ public abstract class AbstractBoxParser implements BoxParser {
     private BoxSkipper skipper;
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractBoxParser.class.getName());
-    ThreadLocal<ByteBuffer> header = ThreadLocal.withInitial(() -> ByteBuffer.allocate(32));
+
+    // `ThreadLocal.withInitial` is only available from Android API 26
+    @SuppressWarnings("AnonymousHasLambdaAlternative")
+    ThreadLocal<ByteBuffer> header = new ThreadLocal<ByteBuffer>() {
+        @Override
+        protected ByteBuffer initialValue() {
+            return ByteBuffer.allocate(32);
+        }
+    };
 
     public abstract ParsableBox createBox(String type, byte[] userType, String parent);
 
