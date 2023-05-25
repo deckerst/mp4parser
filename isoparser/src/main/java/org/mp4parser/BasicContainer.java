@@ -9,7 +9,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class BasicContainer implements Container {
-    private List<Box> boxes = new ArrayList<Box>();
+    private List<Box> boxes = new ArrayList<>();
 
     public BasicContainer() {
     }
@@ -71,16 +71,16 @@ public class BasicContainer implements Container {
         List<T> boxesToBeReturned = new ArrayList<T>(2);
         List<Box> boxes = getBoxes();
         for (int i = 0; i < boxes.size(); i++) {
-            Box boxe = boxes.get(i);
-            //clazz.isInstance(boxe) / clazz == boxe.getClass()?
+            Box box = boxes.get(i);
+            //clazz.isInstance(box) / clazz == box.getClass()?
             // I hereby finally decide to use isInstance
 
-            if (clazz.isInstance(boxe)) {
-                boxesToBeReturned.add((T) boxe);
+            if (clazz.isInstance(box)) {
+                boxesToBeReturned.add((T) box);
             }
 
-            if (recursive && boxe instanceof Container) {
-                boxesToBeReturned.addAll(((Container) boxe).getBoxes(clazz, recursive));
+            if (recursive && box instanceof Container) {
+                boxesToBeReturned.addAll(((Container) box).getBoxes(clazz, true));
             }
         }
         return boxesToBeReturned;
@@ -94,7 +94,7 @@ public class BasicContainer implements Container {
      */
     public void addBox(Box box) {
         if (box != null) {
-            boxes = new ArrayList<Box>(getBoxes());
+            boxes = new ArrayList<>(getBoxes());
             boxes.add(box);
         }
     }

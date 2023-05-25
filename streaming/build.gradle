@@ -1,8 +1,8 @@
 dependencies {
     implementation project(path: ':isoparser')
-    implementation 'org.slf4j:slf4j-api:2.0.3'
+    implementation "org.slf4j:slf4j-api:$slf4j_version"
 
     testImplementation project(path: ':muxer')
-    testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.slf4j:slf4j-simple:2.0.3'
+    testImplementation "junit:junit:$junit_version"
+    testImplementation "org.slf4j:slf4j-simple:$slf4j_version"
 }
