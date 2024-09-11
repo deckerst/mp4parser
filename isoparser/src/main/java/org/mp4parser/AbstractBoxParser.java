@@ -101,6 +101,11 @@ public abstract class AbstractBoxParser implements BoxParser {
             }
             contentSize -= 16;
         }
+
+        if (contentSize < 0) {
+            throw new RuntimeException("box type=" + type + " has negative contentSize=" + contentSize);
+        }
+
         ParsableBox parsableBox;
         if (skipper != null && skipper.skip(type, contentSize)) {
             LOG.trace("Skipping box {} {} {}", type, usertype, parentType);
