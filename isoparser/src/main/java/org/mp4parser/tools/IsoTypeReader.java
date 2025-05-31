@@ -16,12 +16,10 @@
 package org.mp4parser.tools;
 
 import java.io.ByteArrayOutputStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 public final class IsoTypeReader {
-
-
     public static long readUInt32BE(ByteBuffer bb) {
         long ch1 = readUInt8(bb);
         long ch2 = readUInt8(bb);
@@ -30,7 +28,6 @@ public final class IsoTypeReader {
         return ((ch4 << 24) + (ch3 << 16) + (ch2 << 8) + (ch1 << 0));
 
     }
-
 
     public static long readUInt32(ByteBuffer bb) {
         long i = bb.getInt();
@@ -46,7 +43,6 @@ public final class IsoTypeReader {
         result += byte2int(bb.get());
         return result;
     }
-
 
     public static int readUInt16(ByteBuffer bb) {
         int result = 0;
@@ -69,7 +65,6 @@ public final class IsoTypeReader {
     public static int byte2int(byte b) {
         return b < 0 ? b + 256 : b;
     }
-
 
     /**
      * Reads a zero terminated UTF-8 string.
@@ -120,7 +115,6 @@ public final class IsoTypeReader {
 
     }
 
-
     public static double readFixedPoint0230(ByteBuffer bb) {
         byte[] bytes = new byte[4];
         bb.get(bytes);
@@ -153,18 +147,10 @@ public final class IsoTypeReader {
         return result.toString();
     }
 
-
     public static String read4cc(ByteBuffer bb) {
         byte[] codeBytes = new byte[4];
         bb.get(codeBytes);
-
-        try {
-            return new String(codeBytes, "ISO-8859-1");
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
-
-
+        return new String(codeBytes, StandardCharsets.ISO_8859_1);
     }
 
     public static long readUInt48(ByteBuffer byteBuffer) {

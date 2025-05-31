@@ -15,33 +15,25 @@
  */
 package org.mp4parser.tools;
 
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Converts <code>byte[]</code> -&gt; <code>String</code> and vice versa.
  */
 public final class Ascii {
     public static byte[] convert(String s) {
-        try {
-            if (s != null) {
-                return s.getBytes("us-ascii");
-            } else {
-                return null;
-            }
-        } catch (UnsupportedEncodingException e) {
-            throw new Error(e);
+        if (s != null) {
+            return s.getBytes(StandardCharsets.US_ASCII);
+        } else {
+            return null;
         }
     }
 
     public static String convert(byte[] b) {
-        try {
-            if (b != null) {
-                return new String(b, "us-ascii");
-            } else {
-                return null;
-            }
-        } catch (UnsupportedEncodingException e) {
-            throw new Error(e);
+        if (b != null) {
+            return new String(b, StandardCharsets.US_ASCII);
+        } else {
+            return null;
         }
     }
 }

@@ -77,7 +77,7 @@ public class Path {
             throw new RuntimeException("Cannot start at / - only relative path expression into the structure are allowed");
         }
 
-        if (path.length() == 0) {
+        if (path.isEmpty()) {
             if (thing instanceof ParsableBox) {
                 return Collections.singletonList((T) thing);
             } else {
@@ -107,7 +107,7 @@ public class Path {
                             String indexString = m.group(3);
                             index = Integer.parseInt(indexString);
                         }
-                        List<T> children = new LinkedList<T>();
+                        List<T> children = new LinkedList<>();
                         int currentIndex = 0;
                         // I'm suspecting some Dalvik VM to create indexed loops from for-each loops
                         // using the iterator instead makes sure that this doesn't happen
@@ -117,7 +117,7 @@ public class Path {
                             Box box1 = iterator.next();
                             if (box1.getType().matches(type)) {
                                 if (index == -1 || index == currentIndex) {
-                                    children.addAll(Path.<T>getPaths(box1, later, singleResult));
+                                    children.addAll(Path.getPaths(box1, later, singleResult));
                                 }
                                 currentIndex++;
                             }

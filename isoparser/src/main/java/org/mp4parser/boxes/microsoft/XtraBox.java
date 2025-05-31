@@ -18,14 +18,13 @@ package org.mp4parser.boxes.microsoft;
 
 
 import org.mp4parser.support.AbstractBox;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.Vector;
 
@@ -49,7 +48,7 @@ import java.util.Vector;
  */
 
 public class XtraBox extends AbstractBox {
-    private static Logger LOG = LoggerFactory.getLogger(XtraBox.class);
+    private static final Logger LOG = LoggerFactory.getLogger(XtraBox.class);
     public static final String TYPE = "Xtra";
 
     public static final int MP4_XTRA_BT_UNICODE = 8;
@@ -59,7 +58,7 @@ public class XtraBox extends AbstractBox {
     //http://stackoverflow.com/questions/5398557/java-library-for-dealing-with-win32-filetime
     private static final long FILETIME_EPOCH_DIFF = 11644473600000L;
     private static final long FILETIME_ONE_MILLISECOND = 10 * 1000;
-    Vector<XtraTag> tags = new Vector<XtraTag>();
+    Vector<XtraTag> tags = new Vector<>();
     ByteBuffer data;
     private boolean successfulParse = false;
 
@@ -81,25 +80,17 @@ public class XtraBox extends AbstractBox {
     }
 
     private static void writeAsciiString(ByteBuffer dest, String s) {
-        try {
-            dest.put(s.getBytes("US-ASCII"));
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException("Shouldn't happen", e);
-        }
+        dest.put(s.getBytes(StandardCharsets.US_ASCII));
     }
 
     private static String readAsciiString(ByteBuffer content, int length) {
-        byte s[] = new byte[length];
+        byte[] s = new byte[length];
         content.get(s);
-        try {
-            return new String(s, "US-ASCII");
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException("Shouldn't happen", e);
-        }
+        return new String(s, StandardCharsets.US_ASCII);
     }
 
     private static String readUtf16String(ByteBuffer content, int length) {
-        char s[] = new char[(length / 2) - 1];
+        char[] s = new char[(length / 2) - 1];
         for (int i = 0; i < (length / 2) - 1; i++) {
             s[i] = content.getChar();
         }
@@ -108,9 +99,9 @@ public class XtraBox extends AbstractBox {
     }
 
     private static void writeUtf16String(ByteBuffer dest, String s) {
-        char ar[] = s.toCharArray();
-        for (int i = 0; i < ar.length; i++) { //Probably not the best way to do this but it preserves the byte order
-            dest.putChar(ar[i]);
+        char[] ar = s.toCharArray();
+        for (char c : ar) { //Probably not the best way to do this but it preserves the byte order
+            dest.putChar(c);
         }
         dest.putChar((char) 0); //Terminating null
     }
@@ -137,7 +128,7 @@ public class XtraBox extends AbstractBox {
         if (!this.isParsed()) {
             this.parseDetails();
         }
-        StringBuffer b = new StringBuffer();
+        StringBuilder b = new StringBuilder();
         b.append("XtraBox[");
         for (XtraTag tag : tags) {
             for (XtraValue value : tag.values) {
@@ -195,7 +186,7 @@ public class XtraBox extends AbstractBox {
      * @return Possibly empty (zero length) array of tag names present
      */
     public String[] getAllTagNames() {
-        String names[] = new String[tags.size()];
+        String[] names = new String[tags.size()];
         for (int i = 0; i < tags.size(); i++) {
             XtraTag tag = tags.elementAt(i);
             names[i] = tag.tagName;
@@ -210,7 +201,7 @@ public class XtraBox extends AbstractBox {
      * @return First String value found
      */
     public String getFirstStringValue(String name) {
-        Object objs[] = getValues(name);
+        Object[] objs = getValues(name);
         for (Object obj : objs) {
             if (obj instanceof String) {
                 return (String) obj;
@@ -226,7 +217,7 @@ public class XtraBox extends AbstractBox {
      * @return First Date value found
      */
     public Date getFirstDateValue(String name) {
-        Object objs[] = getValues(name);
+        Object[] objs = getValues(name);
         for (Object obj : objs) {
             if (obj instanceof Date) {
                 return (Date) obj;
@@ -242,7 +233,7 @@ public class XtraBox extends AbstractBox {
      * @return First long value found
      */
     public Long getFirstLongValue(String name) {
-        Object objs[] = getValues(name);
+        Object[] objs = getValues(name);
         for (Object obj : objs) {
             if (obj instanceof Long) {
                 return (Long) obj;
@@ -259,7 +250,7 @@ public class XtraBox extends AbstractBox {
      */
     public Object[] getValues(String name) {
         XtraTag tag = getTagByName(name);
-        Object values[];
+        Object[] values;
         if (tag != null) {
             values = new Object[tag.values.size()];
             for (int i = 0; i < tag.values.size(); i++) {
@@ -289,11 +280,11 @@ public class XtraBox extends AbstractBox {
      * @param name   Tag name to replace
      * @param values New String values
      */
-    public void setTagValues(String name, String values[]) {
+    public void setTagValues(String name, String[] values) {
         removeTag(name);
         XtraTag tag = new XtraTag(name);
-        for (int i = 0; i < values.length; i++) {
-            tag.values.addElement(new XtraValue(values[i]));
+        for (String value : values) {
+            tag.values.addElement(new XtraValue(value));
         }
         tags.addElement(tag);
     }
@@ -347,10 +338,10 @@ public class XtraBox extends AbstractBox {
         private int inputSize; //For debugging only
 
         private String tagName;
-        private Vector<XtraValue> values;
+        private final Vector<XtraValue> values;
 
         private XtraTag() {
-            values = new Vector<XtraValue>();
+            values = new Vector<>();
         }
 
         private XtraTag(String name) {
@@ -398,7 +389,7 @@ public class XtraBox extends AbstractBox {
         }
 
         public String toString() {
-            StringBuffer b = new StringBuffer();
+            StringBuilder b = new StringBuilder();
             b.append(tagName);
             b.append(" [");
             b.append(inputSize);
@@ -443,17 +434,12 @@ public class XtraBox extends AbstractBox {
         }
 
         private Object getValueAsObject() {
-            switch (type) {
-                case MP4_XTRA_BT_UNICODE:
-                    return stringValue;
-                case MP4_XTRA_BT_INT64:
-                    return new Long(longValue);
-                case MP4_XTRA_BT_FILETIME:
-                    return fileTimeValue;
-                case MP4_XTRA_BT_GUID:
-                default:
-                    return nonParsedValue;
-            }
+            return switch (type) {
+                case MP4_XTRA_BT_UNICODE -> stringValue;
+                case MP4_XTRA_BT_INT64 -> longValue;
+                case MP4_XTRA_BT_FILETIME -> fileTimeValue;
+                default -> nonParsedValue;
+            };
         }
 
         private void parse(ByteBuffer content) {
@@ -530,20 +516,12 @@ public class XtraBox extends AbstractBox {
         }
 
         public String toString() {
-            switch (type) {
-                case MP4_XTRA_BT_UNICODE:
-                    return "[string]" + stringValue;
-                case MP4_XTRA_BT_INT64:
-                    return "[long]" + longValue;
-                case MP4_XTRA_BT_FILETIME:
-                    return "[filetime]" + fileTimeValue.toString();
-                case MP4_XTRA_BT_GUID:
-                default:
-                    return "[GUID](nonParsed)";
-
-            }
+            return switch (type) {
+                case MP4_XTRA_BT_UNICODE -> "[string]" + stringValue;
+                case MP4_XTRA_BT_INT64 -> "[long]" + longValue;
+                case MP4_XTRA_BT_FILETIME -> "[filetime]" + fileTimeValue.toString();
+                default -> "[GUID](nonParsed)";
+            };
         }
-
     }
-
 }

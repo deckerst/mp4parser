@@ -4,7 +4,6 @@ import org.mp4parser.boxes.dolby.EC3SpecificBox;
 import org.mp4parser.boxes.iso14496.part1.objectdescriptors.BitReaderBuffer;
 import org.mp4parser.boxes.iso14496.part12.CompositionTimeToSample;
 import org.mp4parser.boxes.iso14496.part12.SampleDependencyTypeBox;
-import org.mp4parser.boxes.iso14496.part12.SampleDescriptionBox;
 import org.mp4parser.boxes.iso14496.part12.SubSampleInformationBox;
 import org.mp4parser.boxes.sampleentry.AudioSampleEntry;
 import org.mp4parser.boxes.sampleentry.SampleEntry;
@@ -110,7 +109,7 @@ public class EC3TrackImpl extends AbstractTrack {
         trackMetaData.setTimescale(samplerate); // Audio tracks always use samplerate as timescale
         trackMetaData.setVolume(1);
 
-        ((Buffer)dataSource).position(0);
+        dataSource.position(0);
         samples = readSamples();
         this.decodingTimes = new long[samples.size()];
         Arrays.fill(decodingTimes, 1536);

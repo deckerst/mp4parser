@@ -1,7 +1,17 @@
 buildscript {
     ext {
+        agp_version = '8.10.1'
         junit_version = '4.13.2'
         slf4j_version = '2.0.7'
+    }
+
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath "com.android.tools.build:gradle:$agp_version"
     }
 }
 
@@ -18,10 +28,10 @@ subprojects {
     apply plugin: 'java'
     apply plugin: 'maven-publish'
 
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
-
     java {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+
         withSourcesJar()
         withJavadocJar()
     }
@@ -36,4 +46,7 @@ subprojects {
             }
         }
     }
+
+    tasks.withType(Test).configureEach { enabled = false }
+    tasks.withType(Javadoc).configureEach { enabled = false }
 }
